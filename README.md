@@ -17,9 +17,6 @@ Explorando as funcionalidades deste framework poderoso para desenvolvimento de j
 Movimento suave da bola e das paddles.
 
 
-Pontuação para os jogadores.
-
-
 Reinício automático após cada ponto marcado.
 
 
