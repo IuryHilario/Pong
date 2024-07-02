@@ -1,173 +1,220 @@
-import sys
-import math
-import random
 import pygame
 from pygame.locals import *
+from sys import exit
 
 pygame.init()
 
-SCREEN_WIDTH = 1200
-SCREEN_HEIGHT = 700
+# Tamanho da Tela
+SCREEN_WIDTH = 1200 # Largura da Tela
+SCREEN_HEIGHT = 800 # Altura da Tela
 
 SCREEN = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
+
+# Limitações da Arena
+start_line = 100 # Linha de Inicio da Arena (LIA)
+finish_line = SCREEN_HEIGHT - start_line
+
+
+'''if SCREEN_WIDTH - start_line >= SCREEN_HEIGHT:
+    print(" Não é possivel gerar uma arena ")
+    exit()'''
+
+
+ball_speed = 5
+
+
+# Cores
+GREEN = (0, 255, 0)
 WHITE = (255, 255, 255)
+GRAY = (40, 40, 40)
+BLACK = (0, 0, 0)
 
 
 class Player:
-    def __init__(self, x, y, width, height, color):
+    def __init__(self, x, y, width, height):
+        self.speed = ball_speed * 2
 
+        # Box do Player
         self.x = x
         self.y = y
-        self.speed_player = 20
-        self.color = color
-
         self.width = width
         self.height = height
 
-
+        # Player
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
 
-    def up(self):
-        if  self.rect.y <= 0:
+
+    def move_top(self):
+        # Velocidade para Subir
+        if self.rect.top <= start_line + self.speed:
             pass
 
         else:
-            self.rect.y -= self.speed_player
+            self.rect.y -= self.speed
 
-    def down(self):
-        if self.rect.bottom >= SCREEN_HEIGHT:
+    def move_down(self):
+        # Velocidade para Descer
+        if self.rect.bottom >= finish_line - self.speed:
             pass
 
         else:
-            self.rect.y += self.speed_player
-
-    def collide(self, x, y, radius, raio):
-        return self.rect.colliderect(x - radius, y - radius, radius * 2, radius * 2)
+            self.rect.y += self.speed
 
 
     def draw(self, SCREEN):
-        pygame.draw.rect(SCREEN, self.color, self.rect)
-
+        # Desenhar na Tela
+        pygame.draw.rect(SCREEN, BLACK, self.rect)
+        pygame.draw.rect(SCREEN, WHITE, self.rect, 1, 20)
 
 
 class Ball:
-    def __init__(self, x, y, radius, color):
-
-        self.radius = radius
+    def __init__(self, x, y, width, height):
         self.x = x
         self.y = y
-        self.color = color
+        self.width = width
+        self.height = height
 
-        self.localization = [x, y]
-        self.speed = [direction_ball() * 5, direction_ball() * 5]
+        self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
+
+        self.speed = [ball_speed, ball_speed]
 
 
-    def change_x(self):
-        self.speed[0] = - self.speed[0]
-
-    def change_y(self):
+    def change_move_y(self):
+        # Inverter diração da bola
         self.speed[1] = - self.speed[1]
 
-
-    def new_ball(self):
-        self.localization[0] = self.x
-
+    def change_move_x(self):
+        # Inverter diração da bola
+        self.speed[0] = - self.speed[0]
 
     def move(self):
-        if self.localization[1] < self.radius or self.localization[1] > SCREEN_HEIGHT - self.radius:
-            self.change_y()
+        if start_line < 500: # Em 500 criasse um campo quadrado para arena, mas apenas 500!
+            if self.rect.bottom >= SCREEN_HEIGHT - start_line or self.rect.top <= start_line:
+                self.change_move_y()
 
-        self.localization[0] += self.speed[0]
-        self.localization[1] += self.speed[1]
+        else:
+            if self.rect.bottom <= SCREEN_HEIGHT - start_line + self.height or self.rect.top >= start_line - self.height:
+                self.change_move_y()
+
+
+        self.rect = self.rect.move(self.speed[0], self.speed[1])
+
+    def collide(self, player):
+        # Verifica se colidiu com o player
+        return self.rect.colliderect(player)
 
 
     def draw(self, SCREEN):
-        pygame.draw.circle(SCREEN, self.color, (self.localization[0], self.localization[1]), self.radius)
-        #pygame.draw.rect(SCREEN, (255, 0, 0), (self.localization[0] - self.radius, self.localization[1] - self.radius,  self.radius * 2, self.radius * 2), 1)
+        pygame.draw.circle(SCREEN, GREEN, self.rect.center, self.width // 2)
 
 
-def direction_ball():
-    direction = random.randint(1, 2)
+def map():
+    color_line = WHITE
 
-    if direction == 1:
-        return 1
+    #Vertical 1 e 2
+    pygame.draw.line(SCREEN, color_line, (start_line, start_line), (SCREEN_WIDTH - start_line, start_line), 5)
+    pygame.draw.line(SCREEN, color_line, (start_line, finish_line), (SCREEN_WIDTH - start_line, finish_line), 5)
 
-    else:
-        return - 1
+    #Horizontal 1 e 2
+    pygame.draw.line(SCREEN, color_line, (start_line, start_line), (start_line, SCREEN_HEIGHT - start_line), 5)
+    pygame.draw.line(SCREEN, color_line, (SCREEN_WIDTH - start_line, SCREEN_HEIGHT - start_line), (SCREEN_WIDTH - start_line, start_line), 5)
 
 
 def main():
-    COLOR = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+    # Configurações do Jogo
+    tick = 60
+    color = GRAY
 
-    player_1 = [Player(50, 150, 10, 100, COLOR)]
-    player_2 = [Player((SCREEN_WIDTH - 50), 150, 10, 100, COLOR)]
 
-    ball = [Ball(600, random.randint(200, 500), 15, COLOR)]
+    # Configurações do Padrão dos Players
+    width_player = 10
+    height_player = 70
+    y_player = SCREEN_HEIGHT // 2 - 35
+    direcao_valida_1, direcao_valida_2 = True, True
+
+    #Player 1 Localidade
+    x_player_1 = start_line + 25
+
+    # Player 2 Localidade
+    x_player_2 = SCREEN_WIDTH - start_line - 25
+
+    # Configurações da Bola
+    x_ball = SCREEN_WIDTH // 2 + 35
+    y_ball = SCREEN_HEIGHT // 2 - 35
+    width_ball = 15
+    height_ball = 15
+
+
+
+    player_one = [Player(x_player_1, y_player, width_player, height_player)]
+    player_two = [Player(x_player_2, y_player, width_player, height_player)]
+
+    balls = [Ball(x_ball, y_ball, width_ball, height_ball)]
 
     clock = pygame.time.Clock()
 
-    run = True
-    collision = True
-    bater_1 = True
-    bater_2 = True
-
-    while run:
-        SCREEN.fill(WHITE)
-        clock.tick(60)
-
+    while True:
+        clock.tick(tick)
+        SCREEN.fill(color)
         for event in pygame.event.get():
             if event.type == QUIT:
-                sys.exit()
+                pygame.quit()
+                exit()
+
+        # Desenhar todos os players na lista
+        for p1 in player_one:
+            p1.draw(SCREEN)
+
+        for p2 in player_two:
+            p2.draw(SCREEN)
 
 
-        for play_1 in player_1:
-            play_1.draw(SCREEN)
+        # Desenhar todas as bolas na lista
+        for b in balls:
+            b.draw(SCREEN)
+            b.move()
 
 
-        for play_2 in player_2:
-            play_2.draw(SCREEN)
+        for ball in balls:
+            # Faz a verificação da colisão Player Bola
+            if ball.collide(player_one[balls.index(ball)]) or ball.collide(player_two[balls.index(ball)]):
+                # JOGADOR 1
+                if ball.collide(player_one[balls.index(ball)]) and direcao_valida_1:
+                    direcao_valida_1 = False
+                    direcao_valida_2 = True
+                    ball.change_move_x()
 
 
-        for bal in ball:
-            bal.draw(SCREEN)
-            bal.move()
+                # JOGADOR 2
+                elif ball.collide(player_two[balls.index(ball)]) and direcao_valida_2:
+                    direcao_valida_1 = True
+                    direcao_valida_2 = False
+                    ball.change_move_x()
 
+
+
+            elif ball.rect.left <= start_line or ball.rect.right >= SCREEN_WIDTH - start_line:
+                # balls.pop(balls.index(ball))
+                ball.change_move_x()
+
+        # Teclas de Movimento
         output_key = pygame.key.get_pressed()
 
-
         if output_key[K_w]:
-            play_1.up()
+            p1.move_top()
 
         if output_key[K_s]:
-            play_1.down()
+            p1.move_down()
 
         if output_key[K_UP]:
-            play_2.up()
+            p2.move_top()
 
         if output_key[K_DOWN]:
-            play_2.down()
+            p2.move_down()
 
 
-        if bal.localization[0] < - bal.radius or bal.localization[0] > SCREEN_WIDTH + bal.radius:
-            bal.localization[0] = bal.x
-            bal.speed = [direction_ball() * 5, direction_ball() * 5]
-            bater_1 = True
-            bater_2 = True
-
-
-        if play_1.collide(bal.localization[0], bal.localization[1], bal.radius, bal.radius) and bater_1 == True:
-            bater_1 = False
-            bater_2 = True
-            bal.change_x()
-
-
-        elif play_2.collide(bal.localization[0], bal.localization[1], bal.radius, bal.radius) and bater_2 == True:
-            bater_1 = True
-            bater_2 = False
-            bal.change_x()
-
-
+        map()
         pygame.display.update()
 
 
