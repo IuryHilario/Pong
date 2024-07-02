@@ -89,13 +89,10 @@ class Ball:
         self.speed[0] = - self.speed[0]
 
     def move(self):
-        if start_line < 500: # Em 500 criasse um campo quadrado para arena, mas apenas 500!
-            if self.rect.bottom >= SCREEN_HEIGHT - start_line or self.rect.top <= start_line:
-                self.change_move_y()
+        if self.rect.bottom >= SCREEN_HEIGHT - start_line or self.rect.top <= start_line:
+            self.change_move_y()
 
-        else:
-            if self.rect.bottom <= SCREEN_HEIGHT - start_line + self.height or self.rect.top >= start_line - self.height:
-                self.change_move_y()
+
 
 
         self.rect = self.rect.move(self.speed[0], self.speed[1])
@@ -193,8 +190,9 @@ def main():
                     ball.change_move_x()
 
             elif ball.rect.left <= start_line or ball.rect.right >= SCREEN_WIDTH - start_line:
-                # balls.pop(balls.index(ball))
-                ball.change_move_x()
+                direcao_valida_1, direcao_valida_2 = True, True
+                b.rect.x = SCREEN_WIDTH // 2 - 35
+                b.rect.y = SCREEN_HEIGHT // 2 - 35
 
 
         # Teclas de Movimento
