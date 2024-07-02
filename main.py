@@ -179,12 +179,12 @@ def main():
         for ball in balls:
             # Faz a verificação da colisão Player Bola
             if ball.collide(player_one[balls.index(ball)]) or ball.collide(player_two[balls.index(ball)]):
+
                 # JOGADOR 1
                 if ball.collide(player_one[balls.index(ball)]) and direcao_valida_1:
                     direcao_valida_1 = False
                     direcao_valida_2 = True
                     ball.change_move_x()
-
 
                 # JOGADOR 2
                 elif ball.collide(player_two[balls.index(ball)]) and direcao_valida_2:
@@ -192,11 +192,10 @@ def main():
                     direcao_valida_2 = False
                     ball.change_move_x()
 
-
-
             elif ball.rect.left <= start_line or ball.rect.right >= SCREEN_WIDTH - start_line:
                 # balls.pop(balls.index(ball))
                 ball.change_move_x()
+
 
         # Teclas de Movimento
         output_key = pygame.key.get_pressed()
